@@ -164,11 +164,11 @@ def apply_det_pointing_azel(data, sim_gnd):
     det_pointing_azel.apply(data)
     return data, det_pointing_azel
 
-def apply_pixels_radec(data, det_pointing_radec):
+def apply_pixels_radec(data, det_pointing_radec, nside):
     pixels_radec = toast.ops.pixels_healpix.PixelsHealpix(
         name="pixels_radec", 
         pixels='pixels',
-        nside=nside_out,
+        nside=nside,
         nside_submap=8,)
     pixels_radec.detector_pointing = det_pointing_radec
     pixels_radec.apply(data)
