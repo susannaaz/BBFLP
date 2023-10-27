@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import datetime as dt
 import copy
 import argparse
@@ -8,16 +7,17 @@ import sys
 import traceback
 import healpy as hp
 from astropy import units as u
+import warnings
+warnings.simplefilter("ignore")
 #
 # Preprocess branch of sotodlib
 from sotodlib import coords, core
 import so3g
-from sotodlib.site_pipeline.preprocess_tod import _build_pipe_from_configs
-from sotodlib.site_pipeline.preprocess_tod import _get_preprocess_context
 import yaml
 from sotodlib.core import Context
 from sotodlib.hwp import hwp
 from sotodlib.tod_ops import fft_ops
+from sotodlib.tod_ops.fft_ops import calc_psd
 import logging
 #
 # Use sotodlib.toast to set default 
@@ -34,6 +34,11 @@ import sotodlib.mapmaking
 # Import pixell
 import pixell.fft
 pixell.fft.engine = "fftw"
+#
+# Plotting
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from matplotlib import rc
 
 # A collection of useful functions written or modified by SA and other SO members, including Max.
 
@@ -119,9 +124,8 @@ def compare(func):
         dets_after = obs_after.local_detectors
         time_after = copy.deepcopy(obs_after.shared["times"])
         signal_after = copy.deepcopy(obs_after.detdata["signal"][dets_after[0]])
-
-        # pLOT
-        # plot before and after 
+        
+        # Plot before and after 
         fig, ax = plt.subplots(ncols=1, nrows=2, figsize=(6,2), sharex=True)
         ax[0].plot(time_before, signal_before, label='(before)', alpha=0.5)
         ax[0].plot(time_after, signal_after, label='(after)', alpha=0.5)
@@ -137,7 +141,7 @@ def compare(func):
 
     return plot
 
-def apply_scanning(data):
+def apply_scanning(data, telescope, schedule):
     sim_gnd = toast.ops.SimGround(
             telescope=telescope,
             schedule=schedule,
@@ -148,24 +152,57 @@ def apply_scanning(data):
     sim_gnd.apply(data)
     return data, sim_gnd
 
-def apply_det_pointing_radec(data):
+def apply_det_pointing_radec(data, sim_gnd):
     det_pointing_radec =toast.ops.PointingDetectorSimple(name='det_pointing_radec', quats='quats_radex', shared_flags=None)
     det_pointing_radec.boresight = sim_gnd.boresight_radec
     det_pointing_radec.apply(data)
     return data, det_pointing_radec
 
-def apply_det_pointing_azel(data):
+def apply_det_pointing_azel(data, sim_gnd):
     det_pointing_azel =toast.ops.PointingDetectorSimple(name='det_pointing_azel', quats='quats_azel', shared_flags=None)
     det_pointing_azel.boresight = sim_gnd.boresight_azel
     det_pointing_azel.apply(data)
     return data, det_pointing_azel
 
+def apply_pixels_radec(data, det_pointing_radec):
+    pixels_radec = toast.ops.pixels_healpix.PixelsHealpix(
+        name="pixels_radec", 
+        pixels='pixels',
+        nside=nside_out,
+        nside_submap=8,)
+    pixels_radec.detector_pointing = det_pointing_radec
+    pixels_radec.apply(data)
+    return data, pixels_radec
+
+def apply_weights_radec(data, det_pointing_radec):
+    weights_radec = toast.ops.stokes_weights.StokesWeights(
+        mode = "IQU", # The Stokes weights to generate (I or IQU)
+        name = "weights_radec", # The 'name' of this class instance,
+        hwp_angle = "hwp_angle"
+    )
+    weights_radec.detector_pointing = det_pointing_radec
+    weights_radec.apply(data)
+    return data, weights_radec
+
+@compare
+def apply_scan_map(data, file, pixels_radec, weights_radec):
+    scan_map = toast.ops.ScanHealpixMap(
+        name='scan_map',
+        file=file)
+    scan_map.pixel_pointing= pixels_radec
+    scan_map.stokes_weights = weights_radec
+    scan_map.apply(data)
+    return data, scan_map
+
+@compare
+def apply_noise_model(data):
+    noise_model = toast.ops.DefaultNoiseModel(
+        name='default_model', noise_model='noise_model')
+    noise_model.apply(data)
+    return data, noise_model
+
+@compare
 def apply_sim_noise(data):
     sim_noise = toast.ops.SimNoise()
     sim_noise.apply(data)
     return data, sim_noise
-
-def apply_noise_model(data):
-    noise_model = toast.ops.DefaultNoiseModel(name='default_model', noise_model='noise_model')
-    noise_model.apply(data)
-    return data, noise_model

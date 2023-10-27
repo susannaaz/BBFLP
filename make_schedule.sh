@@ -26,7 +26,7 @@ toast_ground_schedule --block-out 2025/07/01-2025/07/01 \
     --gap-small 0 \
     --ces-max-time 1200 \
     --fp-radius 0 \
-    --out schedules/schedule_sat_10min \
+    --out schedules/schedule_sat_10min.txt \
     --ra-period 5 \
     --ra-amplitude 5 \
     --boresight-angle-step 45 \
