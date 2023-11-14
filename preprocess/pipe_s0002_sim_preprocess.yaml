@@ -1,0 +1,40 @@
+# Context for noise data
+context_file: '/scratch/gpfs/sa5705/BBFLP/outputs/context.yaml'
+
+# How to subdivide observations
+subobs:
+  use: detset
+  label: detset
+  
+archive:
+  index: 'process_archive.sqlite'
+  policy:
+    type: 'simple'
+    filename: 'preprocess_archive.h5'
+    
+## calc are kwarg arguments that are sent to the calculation function
+## select means we will cut on that flag... eventually
+process_pipe:
+    - name: "detrend"
+      process:
+          method: "linear"
+          count: 10
+          
+    - name: "apodize"
+      process:
+          signal: "signal"
+          apodize_samps: 1600
+          in_place: True
+
+    - name: "demodulate" 
+      process:
+          signal_name: "signal"
+          bpf_cfg:
+              type: 'sine2'
+              center: 8
+              width: 7.8
+              trans_width: 0.2
+          lpf_cfg:
+              type: 'sine2'
+              cutoff: 3.8
+              trans_width: 0.2

@@ -1,10 +1,13 @@
 #!/bin/bash
 
+module use --append /scratch/gpfs/ip8725/conda_envs/rp_env_0.0.5.dev84/modulefiles
+module load soconda/0.0.5.dev84
+
 # Equivalent to
 # toast_ground_schedule schedule.sat.baseline.par
 # But customising timescales, observation patch, etc.
 # 
-# Example: Run 20 min of observation in the south patch:
+# Example: Run observation in the south patch:
 toast_ground_schedule --block-out 2025/07/01-2025/07/01 \
     --equalize-area \
     --equalize-time \
@@ -13,7 +16,7 @@ toast_ground_schedule --block-out 2025/07/01-2025/07/01 \
     --site-alt 5200 \
     --site-name ATACAMA \
     --telescope SAT \
-    --patch south,0.001,-50.000,-30.000,90.000,-50.000 \
+    --patch south,0.001,-50.000,-30.000,90.000,-50.000 --debug \
     --patch-coord C \
     --el-min 55 \
     --el-max 70 \
@@ -32,3 +35,4 @@ toast_ground_schedule --block-out 2025/07/01-2025/07/01 \
     --boresight-angle-step 45 \
     --boresight-angle-time 1440 \
     --elevations-deg 55 
+
