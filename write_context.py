@@ -21,7 +21,6 @@ from sotodlib.io.metadata import read_dataset, write_dataset
 
 WAFER_CACHE = {}
 
-
 def get_wafer_info(telescope, cache_file=None):
     if telescope not in WAFER_CACHE and cache_file is not None:
         try:
@@ -149,6 +148,15 @@ def extract_detdb(hg, db=None):
 
 def extract_obs_info(h):
     t = np.asarray(h["shared"]["times"])[[0, -1]]
+    az = np.asarray(h['shared']['azimuth'][()])
+    el = np.asarray(h['shared']['elevation'][()])
+    el_nom = (el.max() + el.min()) / 2
+    el_span = el.max() - el.min()
+    # Put az in a single branch ...
+    az_cut = az[0] - np.pi
+    az = (az - az_cut) % (2 * np.pi) + az_cut
+    az_span = az.max() - az.min()
+    az_nom = (az.max() + az.min()) / 2 % (2 * np.pi)
     data = {
         "toast_obs_name": h.attrs["observation_name"],
         "toast_obs_uid": int(h.attrs["observation_uid"]),
@@ -157,6 +165,10 @@ def extract_obs_info(h):
         "stop_time": t[1],
         "timestamp": t[0],
         "duration": t[1] - t[0],
+        'el_nom': el_nom ,
+        'el_span': el_span ,
+        'az_nom': az_nom ,
+        'az_span': az_span ,
     }
     return data
 
@@ -193,6 +205,10 @@ def create_context(context_dir, export_dirs, absolute=False):
             "target string",
             "toast_obs_name string",
             "toast_obs_uid string",
+            'el_nom float',
+            'el_span float',
+            'az_nom float',
+            'az_span float',
         ]
     )
 
