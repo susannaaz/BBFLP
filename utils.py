@@ -56,6 +56,48 @@ os.environ['PYSM_LOCAL_DATA']='/home/sa5705/web_files/pysm_2/'
 A collection of useful functions written by SA, and/or other SO members.
 '''
 
+def cmb_cl_theory(nside, input_r = 0.01, ddir = 'input_maps/data/'):
+    lmax = 3*nside-1
+    ells = np.arange(lmax)
+    dl2cl = np.ones(len(ells))
+    dl2cl[1:] = 2*np.pi/(ells[1:]*(ells[1:]+1.))
+
+    # CMB C_ells
+    # Lensing
+    l,dtt,dee,dbb,dte=np.loadtxt(f"{ddir}camb_lens_nobb.dat",unpack=True)
+    l = l.astype(int)
+    msk = l <= lmax - 1
+    l = l[msk]
+    dltt=np.zeros(len(ells)); dltt[l]=dtt[msk]
+    dlee=np.zeros(len(ells)); dlee[l]=dee[msk]
+    dlbb=np.zeros(len(ells)); dlbb[l]=dbb[msk]
+    dlte=np.zeros(len(ells)); dlte[l]=dte[msk]  
+    cl_cmb_tt_lens=dltt * dl2cl
+    cl_cmb_bb_lens=dlbb * dl2cl
+    cl_cmb_ee_lens=dlee * dl2cl
+    
+    # Lensing + r=1
+    l,dtt,dee,dbb,dte=np.loadtxt(f"{ddir}camb_lens_r1.dat",unpack=True)
+    l = l.astype(int)
+    msk = l <= lmax - 1
+    l = l[msk]
+    dltt=np.zeros(len(ells)); dltt[l]=dtt[msk]
+    dlee=np.zeros(len(ells)); dlee[l]=dee[msk]
+    dlbb=np.zeros(len(ells)); dlbb[l]=dbb[msk]
+    dlte=np.zeros(len(ells)); dlte[l]=dte[msk]  
+    cl_cmb_tt_r1=dltt * dl2cl
+    cl_cmb_ee_r1=dlbb * dl2cl
+    cl_cmb_bb_r1=dlee * dl2cl
+    
+    # Full CMB
+    cl_cmb_tt = cl_cmb_tt_lens + input_r * (cl_cmb_tt_r1 - cl_cmb_tt_lens)
+    cl_cmb_ee = cl_cmb_ee_lens + input_r * (cl_cmb_ee_r1 - cl_cmb_ee_lens)
+    cl_cmb_bb = cl_cmb_bb_lens + input_r * (cl_cmb_bb_r1 - cl_cmb_bb_lens)
+    cl0 = 0 * cl_cmb_bb
+    
+    return cl_cmb_tt, cl_cmb_ee, cl_cmb_bb, cl0
+
+
 def make_aman(sch, fig, ax, print_info=False, make_plot=False):
     DEG = np.pi/180
     ts_st = dt.datetime.strptime(sch[0]+' '+sch[1], '%Y-%m-%d %H:%M:%S').timestamp()
