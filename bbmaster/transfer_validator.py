@@ -33,10 +33,11 @@ if __name__ == '__main__':
 
 	# Get all simulation names and the pCl files
 	sorter = man.val_sim_names
-	sim_names = sorter(0, 10, o.output_dir, which='names')
-	pcl_in_names = sorter(0, 10, o.output_dir, which='input_Cl')
-	pcl_filt_names = sorter(0, 10, o.output_dir, which='filtered_Cl')
-	pcl_dec_names = sorter(0, 10, o.output_dir, which='decoupled_Cl')
+	uptosim = 10
+	sim_names = sorter(0, uptosim, o.output_dir, which='names')
+	pcl_in_names = sorter(0, uptosim, o.output_dir, which='input_Cl')
+	pcl_filt_names = sorter(0, uptosim, o.output_dir, which='filtered_Cl')
+	pcl_dec_names = sorter(0, uptosim, o.output_dir, which='decoupled_Cl')
 
 	# Read all C_ells and compute mean and std
 	nsims = len(sim_names)

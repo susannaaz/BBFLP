@@ -20,10 +20,11 @@ if __name__ == '__main__':
     man = PipelineManager(o.globals)
 
     # Get all simulation names and the pCl files
+    uptosim = 10
     sorter = man.pl_sim_names_EandB
-    sim_names = sorter(0, 10, o.output_dir, which='names')
-    pcl_in_names = sorter(0, 10, o.output_dir, which='input_Cl')
-    pcl_filt_names = sorter(0, 10, o.output_dir, which='filtered_Cl')
+    sim_names = sorter(0, uptosim, o.output_dir, which='names')
+    pcl_in_names = sorter(0, uptosim, o.output_dir, which='input_Cl')
+    pcl_filt_names = sorter(0, uptosim, o.output_dir, which='filtered_Cl')
     #print(pcl_in_names)
     
     # Loop through each file and read all power spectra
