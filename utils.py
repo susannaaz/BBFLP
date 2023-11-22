@@ -105,6 +105,13 @@ def cmb_cl_theory(nside, input_r = 0.01, ddir = 'input_maps/data/'):
     
     return cl_cmb_tt, cl_cmb_ee, cl_cmb_bb, cl0
 
+def fcmb(nu):
+    """ CMB SED (in antenna temperature units).
+    """
+    x=0.017608676067552197*nu
+    ex=np.exp(x)
+    return ex*(x/(ex-1))**2
+
 
 def make_aman(sch, fig, ax, print_info=False, make_plot=False):
     DEG = np.pi/180
