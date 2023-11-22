@@ -46,6 +46,14 @@ import dateutil.parser
 import healpy as hp
 from toast import qarray as qa
 
+# estimate r
+import healpy as hp
+import scipy as sc
+import array
+from scipy.linalg import sqrtm
+from scipy.optimize import minimize
+
+
 # Avoid downloading pysm files from the 
 # web to which some computing nodes may
 # not have access
@@ -511,5 +519,78 @@ def split_schedule(schedule_file):
             
     return
 
+#---------------------- Utils -----------------------------------
+def bin_cls(cls, delta_ell=2):
+    """ Returns a binned-version of the power spectra.    
+    """
+    nls = cls.shape[-1]
+    ells = np.arange(nls)
+    delta_ell = 10
+    N_bins = (nls-2)//delta_ell
+    w = 1./delta_ell
+    W = np.zeros([N_bins, nls])
+    for i in range(N_bins):
+        W[i, 2+i*delta_ell:2+(i+1)*delta_ell] = w
+    l_eff = np.dot(ells, W.T)
+    cl_binned = np.dot(cls, W.T)
+    return l_eff, W, cl_binned
 
+def fcmb(nu):
+    """ CMB SED (in antenna temperature units).
+    """
+    x=0.017608676067552197*nu
+    ex=np.exp(x)
+    return ex*(x/(ex-1))**2
+
+def get_mean_spectra(ls=np.arange(19)):
+    """ Computes amplitude power spectra
+    """
+    lmax = len(ls)-1
+    dl2cl = np.ones(len(ls))
+    dl2cl[1:] = 2*np.pi/(ls[1:]*(ls[1:]+1.))
+
+    # CMB amplitude
+    # Lensing
+    l,dtt,dee,dbb,dte=np.loadtxt("data/camb_lens_nobb.dat",unpack=True)
+    l = l.astype(int)
+    msk = l <= lmax
+    l = l[msk]
+    dlbb=np.zeros(len(ls)); dlbb[l]=dbb[msk]
+    cl_cmb_bb_lens=dlbb * dl2cl
+
+    # Lensing + r=1
+    l,dtt,dee,dbb,dte=np.loadtxt("data/camb_lens_r1.dat",unpack=True)
+    l = l.astype(int)
+    msk = l <= lmax
+    l = l[msk]
+    dlbb=np.zeros(len(ls)); dlbb[l]=dbb[msk]
+    cl_cmb_bb_r1=dlbb * dl2cl
+
+    return(cl_cmb_bb_lens, cl_cmb_bb_r1)
+
+def cl_theory(p, A_lens=1.):
+    """ Fiducial Cls binned """
+    cl_cmb_bb_lens, cl_cmb_bb_r1 = get_mean_spectra()
+    cl_cmb_bb = A_lens * cl_cmb_bb_lens + p * (cl_cmb_bb_r1-cl_cmb_bb_lens)
+    f_cmb = fcmb(nu=90)
+    cl = (cl_cmb_bb * np.outer(f_cmb, f_cmb))# * cl2dl
+    return cl
+
+def chi2(p, cl_bb):
+    nls = len(cl_bb)
+    ls = np.arange(nls)
+    cl2dl = ls*(ls+1)/(2*np.pi)
+    dl = cl_bb * cl2dl
+    model = cl_theory(p) * cl2dl
+    #print(dl.shape)
+    #print(model.shape)
+    return np.sum((2*ls+1)*(dl - model)**2)
+
+def nl_theory(ell):
+    """ TODO: add beam 
+    """
+    whiten_level = 2 #0.0000000001 #2 #uK-arcmin iMO
+    noise = (whiten_level*np.pi/(180*60))**2 #[uK^2/srad]                                                                            
+    return noise
+#----------------------------------------------------------------
 
