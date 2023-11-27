@@ -8,9 +8,6 @@ The Jupyter notebook tutorials are focused on using toast/sotodlib for simulatin
 
 ## Table of contents
 
- --- 
-> [Section 0 - Introduction](Sec1_Introduction.ipynb): Overview of contents.
-
 > [Section 1 - Setting up on NERSC](Sec1_Setup_NERSC.ipynb): Guide on how to run these notebooks on NERSC.
 
 > [Section 2 - Sky maps](Sec2_Sky_maps.ipynb): How to generate simple sky maps, including CMB and/or foregrounds using [PySM](https://github.com/galsci/pysm). Ongoing: integrate with existing tools (e.g. [susannaaz/BBSims](https://github.com/susannaaz/BBSims) or [simonsobs/BBSims](https://github.com/simonsobs/BBSims)) based on [PySM](https://github.com/galsci/pysm) and [CAMB](https://github.com/cmbant/CAMB).
