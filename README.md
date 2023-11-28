@@ -5,6 +5,10 @@ Overview for generating and pre-processing Simons Observatory (SO) SAT BB data p
 
 The Jupyter notebook tutorials are focused on using toast/sotodlib for simulating and pre-processing data, including filter-bin mapmaking, and BBMASTER (a.k.a. SOOPERCOOL) for estimating unbiased power spectra.
 
+## Contact
+
+For any questions please reach out to Susanna Azzoni (email: sazzoni@princeton.edu, github: @susannaaz).
+
 
 ## Table of contents
 
